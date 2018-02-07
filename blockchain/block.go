@@ -3,6 +3,7 @@ package blockchain
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 )
 
 type Block struct {
@@ -11,6 +12,10 @@ type Block struct {
 	BPM       int
 	Hash      string
 	PrevHash  string
+}
+
+func (block *Block) Print() string {
+	return fmt.Sprintf("index=%d,timestamp=%s,bpm=%d,hash=%s,prehash=%s", block.Index, block.Timestamp, block.BPM, block.Hash, block.PrevHash)
 }
 
 func (block *Block) CalculateHash() string {

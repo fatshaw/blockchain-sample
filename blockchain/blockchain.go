@@ -1,6 +1,8 @@
 package blockchain
 
-import "time"
+import (
+	"time"
+)
 
 // BlockchainInstance A Blockchain Instance
 var BlockchainInstance = Blockchain{}
