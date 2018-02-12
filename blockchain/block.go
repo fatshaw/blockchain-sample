@@ -14,7 +14,7 @@ type Block struct {
 	PrevHash  string
 }
 
-func (block *Block) Print() string {
+func (block *Block) String() string {
 	return fmt.Sprintf("index=%d,timestamp=%s,bpm=%d,hash=%s,prehash=%s", block.Index, block.Timestamp, block.BPM, block.Hash, block.PrevHash)
 }
 
@@ -41,3 +41,10 @@ func (block *Block) IsValidBlock(oldBlock Block) bool {
 
 	return true
 }
+
+
+type ByIndex []Block
+
+func (a ByIndex) Len() int           { return len(a) }
+func (a ByIndex) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByIndex) Less(i, j int) bool { return a[i].Index < a[j].Index }
