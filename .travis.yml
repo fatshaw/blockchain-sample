@@ -1,0 +1,14 @@
+language: go
+
+go:
+  - 1.9.x
+  - master
+
+before_script:
+  - go get -u github.com/golang/dep/cmd/dep
+  - $GOPATH/bin/dep ensure
+
+script: make test-all
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
