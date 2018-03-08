@@ -3,7 +3,6 @@ package api
 import (
 	"net/http"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	. "github.com/fatshaw/blockchain-sample/blockchain"
@@ -16,18 +15,18 @@ func GetBlockChain(c *gin.Context) {
 }
 
 func SaveBlockChain(c *gin.Context) {
-	var message BlockMessage
-	if err := c.ShouldBindWith(&message, binding.JSON); err == nil {
-		newBlock, err := BlockchainInstance.GenerateBlock(message.BPM)
+	var addBlockCommand AddBlockCommand
+	if err := c.ShouldBindWith(&addBlockCommand, binding.JSON); err == nil {
+		newBlock, err := BlockchainInstance.GenerateBlock(addBlockCommand.BPM)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, message)
+			c.JSON(http.StatusInternalServerError, addBlockCommand)
 			return
 		}
 
 		if newBlock.IsValidBlock(BlockchainInstance.LastBlock()) {
 			BlockchainInstance.AppendBlock(newBlock)
 			Broadcast(RESPONSEBLOCKCHAIN, []Block{BlockchainInstance.LastBlock()})
-			Logger.Info(spew.Sdump(BlockchainInstance))
+			Logger.Info(ToJson(BlockchainInstance))
 		}
 
 		c.JSON(http.StatusCreated, newBlock)
@@ -46,9 +45,9 @@ func GetPeer(c *gin.Context) {
 }
 
 func AddPeer(c *gin.Context) {
-	var peerDto PeerDto
-	if err := c.ShouldBindWith(&peerDto, binding.JSON); err == nil {
-		Connect(&peerDto.Addr)
+	var addPeerCommand AddPeerCommand
+	if err := c.ShouldBindWith(&addPeerCommand, binding.JSON); err == nil {
+		Connect(&addPeerCommand.Addr)
 	}
-	c.JSON(http.StatusCreated, peerDto)
+	c.JSON(http.StatusCreated, addPeerCommand)
 }

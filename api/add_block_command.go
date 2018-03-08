@@ -1,6 +1,6 @@
 package api
 
 //Message Save Block message
-type BlockMessage struct {
+type AddBlockCommand struct {
 	BPM int
 }

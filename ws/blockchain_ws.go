@@ -27,11 +27,11 @@ func init() {
 
 func Connect(addr *string) {
 	u := url.URL{Scheme: "ws", Host: *flag.String("addr", *addr, "http service address"), Path: "/ws/blockchain"}
-	Logger.Info("connecting to", u.String())
+	Logger.Info("connecting to:", u.String())
 
 	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
-		Logger.Fatal("dial:", err)
+		Logger.Warning("dial:", err)
 	}
 
 	onConnection(c)

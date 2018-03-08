@@ -2,13 +2,41 @@ package blockchain
 
 import (
 	"time"
+	"sync"
+	. "github.com/fatshaw/blockchain-sample/util"
 )
 
 // BlockchainInstance A Blockchain Instance
 var BlockchainInstance = Blockchain{}
 
+var difficulty = 1
+var numOfAvgBlockExpectedWithinTimespan = 1
+var timeIntervalOfChangeDifficulty = time.Second * 30
+var numOfBlockGeneratedWithinTimespan = 0
+
+var mutex = sync.Mutex{}
+
 func init() {
 	BlockchainInstance.AppendBlock(genesisBlock())
+	go func() {
+		for {
+
+			mutex.Lock()
+			difficulty = numOfBlockGeneratedWithinTimespan / numOfAvgBlockExpectedWithinTimespan
+			if difficulty == 0 {
+				difficulty = 1
+			}
+
+			Logger.Infof("timeIntervalOfChangeDifficulty=%d,numOfBlockGeneratedWithinTimespan=%d,numOfAvgBlockExpectedWithinTimespan=%d, "+
+				"Change difficulty to %d", timeIntervalOfChangeDifficulty, numOfBlockGeneratedWithinTimespan,
+				numOfAvgBlockExpectedWithinTimespan, difficulty)
+
+			numOfBlockGeneratedWithinTimespan = 0
+			mutex.Unlock()
+
+			time.Sleep(timeIntervalOfChangeDifficulty)
+		}
+	}()
 }
 
 type Blockchain struct {
@@ -25,7 +53,13 @@ func (blockchain *Blockchain) GenerateBlock(BPM int) (Block, error) {
 	newBlock.Timestamp = time.Now().String()
 	newBlock.BPM = BPM
 	newBlock.PrevHash = blockchain.LastBlock().Hash
-	newBlock.Hash = newBlock.CalculateHash()
+	newBlock.Difficulty = difficulty
+	newBlock.TryGenerateHash()
+
+	mutex.Lock()
+	numOfBlockGeneratedWithinTimespan++
+	defer mutex.Unlock()
+
 	return newBlock, nil
 }
 
@@ -40,5 +74,5 @@ func (blockchain *Blockchain) ReplaceChain(newBlockchain *Blockchain) {
 }
 
 func genesisBlock() Block {
-	return Block{0, "0", 0, "f78b037f6d1ecfc5a00bc7d96858bdc7af9ac8dbf95fdd5736d0f950ab279b9e", ""}
+	return Block{0, "0", 0, "0a1e2340446d3e7dd298d5ed01c102811d4f7da34255f287b242d0eb7471e352", "", difficulty, 0}
 }
