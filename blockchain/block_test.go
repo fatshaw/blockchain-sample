@@ -23,4 +23,12 @@ var _ = Describe("block hash test", func() {
 		})
 	})
 
+	Context("check block validate", func() {
+		FIt("correct block should validate successfully", func() {
+			firstBlock := Block{0, "0", 0, "0a1e2340446d3e7dd298d5ed01c102811d4f7da34255f287b242d0eb7471e352", "", difficulty, 0}
+			newBlock, _ := BlockchainInstance.GenerateBlock(1)
+			Expect(newBlock.IsValidBlock(firstBlock)).To(Equal(true))
+		})
+	})
+
 })

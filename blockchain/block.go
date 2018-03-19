@@ -54,7 +54,7 @@ func (block *Block) TryGenerateHash() {
 	for {
 		block.Nonce = rand.Int()
 		block.Hash = block.CalculateHash()
-		if strings.HasPrefix(block.Hash, strings.Repeat("0", difficulty)) {
+		if strings.HasPrefix(block.Hash, strings.Repeat("0", block.Difficulty)) {
 			Logger.Info("well done, we got a block = ", block)
 			break
 		}

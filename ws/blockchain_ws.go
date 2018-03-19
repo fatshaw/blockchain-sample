@@ -4,7 +4,6 @@ import (
 	"github.com/gorilla/websocket"
 	"net/http"
 	"encoding/json"
-	"sort"
 	"net/url"
 	"flag"
 	"time"
@@ -66,61 +65,17 @@ func onMessage(c *websocket.Conn) {
 
 		Logger.Info("got new message: ", string(data))
 
-
-
 		var message BlockchainWsResponse
 		json.Unmarshal(data, &message)
-
-		switch message.MessageType {
-		case QUERYLATEST:
-			writesocket(c, RESPONSEBLOCKCHAIN, []Block{BlockchainInstance.LastBlock()})
-		case QUERYALL:
-			writesocket(c, RESPONSEBLOCKCHAIN, BlockchainInstance.Blocks)
-		case RESPONSEBLOCKCHAIN:
-			handleResponse(&message)
-		case PING:
-			writesocket(c,PONG,nil)
-		}
+		NewProcessor(c, &message).OnMessage(&message)
 
 	}
 }
-
 
 func Broadcast(messageType int, blocks []Block) {
 	for _, c := range Peers {
 		writesocket(c, messageType, blocks)
 	}
-}
-
-func handleResponse(message *BlockchainWsResponse) {
-	sort.Sort(ByIndex(message.Blocks))
-	latestBlockReceived := message.Blocks[len(message.Blocks)-1]
-	latestBlockHeld := BlockchainInstance.LastBlock()
-	if latestBlockReceived.Index > latestBlockHeld.Index {
-		if latestBlockHeld.Hash == latestBlockReceived.PrevHash {
-			appendBlock(latestBlockReceived)
-		} else if len(message.Blocks) == 1 {
-			queryAllChain()
-		} else {
-			replaceChain(message)
-		}
-	}
-}
-
-func replaceChain(message *BlockchainWsResponse) {
-	Logger.Infof("ReplaceChain")
-	BlockchainInstance.ReplaceChain(&Blockchain{message.Blocks})
-	Broadcast(RESPONSEBLOCKCHAIN, []Block{BlockchainInstance.LastBlock()})
-}
-
-func appendBlock(latestBlockReceived Block) {
-	Logger.Info("Append block : %v\n", latestBlockReceived)
-	BlockchainInstance.AppendBlock(latestBlockReceived)
-}
-
-func queryAllChain() {
-	Logger.Info("QueryAll Blockchain")
-	Broadcast(QUERYALL, nil)
 }
 
 func writesocket(c *websocket.Conn, messageType int, blocks []Block) {

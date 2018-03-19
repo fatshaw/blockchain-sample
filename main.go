@@ -11,12 +11,14 @@ import (
 	. "github.com/fatshaw/blockchain-sample/util"
 )
 
-
 const DEFAULTHTTPPORT = "8080"
 const DEFAULTP2PPORT = "6001"
 
 func run() {
 	router := gin.Default()
+	router.Use(errorHandler)
+	router.Use(gin.Recovery())
+
 	router.GET("/ping", Hello)
 	router.GET("/blockchain/getblocks", GetBlockChain)
 	router.POST("/blockchain/mineblock", SaveBlockChain)
@@ -44,6 +46,15 @@ func getEnvValueWithDefault(envName, defaultValue string) string {
 		value = defaultValue
 	}
 	return value
+}
+
+func errorHandler(c *gin.Context) {
+	defer func(c *gin.Context) {
+		if len(c.Errors) > 0 {
+			c.JSON(-1, c.Errors)
+		}
+	}(c)
+	c.Next()
 }
 
 func main() {
